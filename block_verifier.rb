@@ -1,11 +1,16 @@
 class Block_Verifier
-  class Block
-    attr_accessor :number
-    attr_accessor :prev_block_hash
-    attr_accessor :raw_transactions
-    attr_accessor :transactions
-    attr_accessor :timestamp
-    attr_accessor :block_hash
+
+	attr_accessor :currCount
+
+	class Block
+
+	    attr_accessor :number
+	    attr_accessor :prev_block_hash
+	    attr_accessor :raw_transactions
+	    attr_accessor :transactions
+	    attr_accessor :timestamp
+	    attr_accessor :block_hash
+
 
 		def initialize
 			number = 0
@@ -15,24 +20,33 @@ class Block_Verifier
 			timestamp = 0
 			block_hash = 0
 		end
-  end
+	end
 
 	def check_block(blocks)
+		@currCount = 0
 		blocks.each do |b|
-        block = Block.new
-        attributes = b.split('|')
-        block.number = attributes[0]
-        block.prev_block_hash = attributes[1]
-        block.raw_transactions = attributes[2]
-        block.transactions = block.raw_transactions.split(':')
-        block.timestamp = attributes[3]
-        block.block_hash = attributes[4]
-        puts block.number
-        puts block.prev_block_hash
-        puts block.raw_transactions
-        puts block.transactions
-        puts block.timestamp
-        puts block. block_hash
+        	block = Block.new
+	        attributes = b.split('|')
+
+	        block.number = attributes[0]
+	        block.prev_block_hash = attributes[1]
+	        block.raw_transactions = attributes[2]
+
+	        block.transactions = block.raw_transactions.split(':')
+
+	        block.timestamp = attributes[3]
+	        block.block_hash = attributes[4]
+
+	        # call functions to validate portions
+	        check_block_num(block)
+	        # print tests
+	        puts block.number
+	        puts block.prev_block_hash
+	        puts block.raw_transactions
+	        puts block.transactions
+	        puts block.timestamp
+	        puts block. block_hash
+	    end
     end
 
 	def check_invalid_characters
@@ -44,14 +58,32 @@ class Block_Verifier
 
 
 	# function to check the numbering of blocks
-	def check_block_num
+	def check_block_num(block)
 		# make sure number of blocks is in order starting at 0
+		if (block.number.to_i != @currCount.to_i)
+			puts "Line #{currCount}: Invalid block number #{block.number}, should be #{currCount} "
+			puts "BLOCKCHAIN INVALID"
+			exit 1
+		else
+			@currCount += 1
+			@currCount
+		end
+	end
+
+
+	def hash_block(block)
+
 	end
 
 
 	# function to check previous hash is valid
-	def check_prev_hash
+	def check_prev_hash(block)
 		# first block's prev_hash is always 0
+		if(@currCount.to_i == 0 and block.number.to_i == 0)
+			if(block.prev_block_hash != 0)
+				puts "Previous hash for Genesis Block should be 0"
+			end
+		end
 		# call hash function to create a new hash to compare to prev_block's hash
 		# if valid, continue
 		# else, exit
@@ -100,5 +132,4 @@ class Block_Verifier
 		# by the end of the program, ALL addresses should have positive balance
 		# having negative between transactions is okay
 	end
-  end
 end
