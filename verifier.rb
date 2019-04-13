@@ -1,8 +1,9 @@
 # Brandon La - bnl22 & Sarah Eyler
 # CS1632
-# D3
+# D4 
 
 require_relative 'arg_check'
+require_relative 'block_verifier'
 
 def arg_error
   puts 'Usage: ruby verifier.rb <name_of_file>'
@@ -16,9 +17,11 @@ args = ArgumentCheck.new
 valid_args = args.arg_check ARGV
 
 # If valid, begin Rubyist's Ruby Hunt simulator. Else, display usage syntax and exit
-case valid_args
-when true
-puts 'Good Argument'
-when false
+if valid_args
+  @verify_block = Block_Verifier.new
+  File.open(ARGV[0]).each do |line|
+    @verify_block.check_block(line)
+  end
+else
   arg_error
 end
