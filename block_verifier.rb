@@ -3,25 +3,25 @@ class Block_Verifier
 	attr_accessor :curr_count
 	attr_accessor :prev_timestamp
 	attr_accessor :actual_prev_hash
-  	attr_accessor :addresses
-  	attr_accessor :prev_hash_error
-  	attr_accessor :prev_timestamp_error
-  	attr_accessor :block_num_error
-  	attr_accessor :transactions_error
-  	attr_accessor :block_hash_error
-  	attr_accessor :balance_error
+  attr_accessor :addresses
+  attr_accessor :prev_hash_error
+  attr_accessor :prev_timestamp_error
+  attr_accessor :block_num_error
+  attr_accessor :transactions_error
+  attr_accessor :block_hash_error
+  attr_accessor :balance_error
 
 	def initialize
 		@curr_count = 0
 		@prev_timestamp = []
 		@actual_prev_hash = 0
 		@addresses = Addresses.new
-    		@prev_hash_error = false
-    		@prev_timestamp_error = false
-    		@block_num_error = false
-   		@transactions_error = false
-    		@block_hash_error = false
-    		@balance_error = false
+    @prev_hash_error = false
+    @prev_timestamp_error = false
+    @block_num_error = false
+    @transactions_error = false
+    @block_hash_error = false
+    @balance_error = false
 
 	end
 
@@ -52,9 +52,7 @@ class Block_Verifier
 			@addresses.each do |name, coins|
 				if(coins < 0)
 					@balance_error = true
-          puts "Line #{curr_count}: Invalid block, address #{name} has #{coins} billcoins!"
-          puts "BLOCKCHAIN INVALID"
-          exit 1
+          print_invalid(name, coins)
 				end
 			end
 		end
@@ -67,6 +65,14 @@ class Block_Verifier
 				end
 			end
 		end
+
+    def print_invalid(name, coins)
+      if @balance_error
+        puts "Line #{@curr_count}: Invalid block, address #{name} has #{coins} billcoins!"
+        puts "BLOCKCHAIN INVALID"
+        exit 1
+      end
+    end
 	end
 
 	# Class for Block object
@@ -109,9 +115,7 @@ class Block_Verifier
     	# check that previous hash == current hash
     	if(@actual_prev_hash != 0 && @actual_prev_hash != curr_block.prev_block_hash)
     		@prev_hash_error = true
-        puts "Line #{@curr_count}: Previous hash was #{curr_block.prev_block_hash}, should be #{@actual_prev_hash}"
-        puts "BLOCKCHAIN INVALID"
-        exit 1
+        print_invalid(curr_block, nil, nil, nil)
     	end
     	@actual_prev_hash = curr_block.block_hash
 
@@ -123,9 +127,7 @@ class Block_Verifier
 		# curr_timestamp > prev_timestamp
     	if(@prev_timestamp != 0 && curr_block.timestamp[0].to_i <= @prev_timestamp[0].to_i && curr_block.timestamp[1].to_i < @prev_timestamp[1].to_i)
     		@prev_timestamp_error = true
-        puts "Line #{@curr_count}: Previous timestamp #{@prev_timestamp[0]}.#{@prev_timestamp[1]} >= new timestamp #{curr_block.timestamp[0]}.#{curr_block.timestamp[1]}"
-        puts "BLOCKCHAIN INVALID"
-        exit 1
+        print_invalid(curr_block, nil, nil, nil)
     	end
     	# set the new "previous timestamp" to be current timestamp before moving on to next block
     	@prev_timestamp = curr_block.timestamp
@@ -146,9 +148,7 @@ class Block_Verifier
 		# make sure number of blocks is in order starting at 0
 		if (curr_block.block_number.to_i != @curr_count)
 			@block_num_error = true
-      puts "Line #{curr_count}: Invalid block number #{curr_block.block_number}, should be #{curr_count} "
-      puts "BLOCKCHAIN INVALID"
-      exit 1
+      print_invalid(curr_block, nil, nil, nil)
 		end
 	end
 
@@ -160,9 +160,7 @@ class Block_Verifier
 		curr_block.transactions.each do |transaction|
 			if(transaction.include? " ")
 				@transactions_error = true
-        puts "Line #{@curr_count}: Could not parse transactions list '#{transaction}'"
-        puts "BLOCKCHAIN INVALID"
-        exit 1
+        print_invalid(curr_block, transaction, nil, nil)
 			end
 
 			# split transaction line to sending/receiving addresses
@@ -204,10 +202,27 @@ class Block_Verifier
 		resulting_hash = res.to_s(16)
 		if(resulting_hash != curr_block.block_hash)
 			@block_hash_error = true
-      puts "Line #{@curr_count}: String '#{block_hash_string}' hash set to #{curr_block.block_hash}, should be #{resulting_hash}"
-      puts "BLOCKCHAIN INVALID"
-      exit 1
+      print_invalid(curr_block, nil, block_hash_string, resulting_hash)
 		end
 	end
 
+  def print_invalid(curr_block, transaction, block_hash_string, resulting_hash)
+    if @prev_hash_error
+      puts "Line #{@curr_count}: Previous hash was #{curr_block.prev_block_hash}, should be #{@actual_prev_hash}"
+      puts "BLOCKCHAIN INVALID"
+    elsif @prev_timestamp_error
+      puts "Line #{@curr_count}: Previous timestamp #{@prev_timestamp[0]}.#{@prev_timestamp[1]} >= new timestamp #{curr_block.timestamp[0]}.#{curr_block.timestamp[1]}"
+      puts "BLOCKCHAIN INVALID"
+    elsif @block_num_error
+      puts "Line #{@curr_count}: Invalid block number #{curr_block.block_number}, should be #{@curr_count} "
+      puts "BLOCKCHAIN INVALID"
+    elsif @transactions_error
+      puts "Line #{@curr_count}: Could not parse transactions list '#{transaction}'"
+      puts "BLOCKCHAIN INVALID"
+    else @block_hash_error
+      puts "Line #{@curr_count}: String '#{block_hash_string}' hash set to #{curr_block.block_hash}, should be #{resulting_hash}"
+      puts "BLOCKCHAIN INVALID"
+    end
+    exit 1
+  end
 end
