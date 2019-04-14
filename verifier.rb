@@ -1,7 +1,5 @@
-# Brandon La - bnl22 & Sarah Eyler
-# CS1632
-# D4 
-
+# Brandon La(bnl22) & Sarah Eyler
+# CS1632 - D4
 require_relative 'arg_check'
 require_relative 'block_verifier'
 
@@ -16,12 +14,15 @@ end
 args = ArgumentCheck.new
 valid_args = args.arg_check ARGV
 
-# If valid, begin Rubyist's Ruby Hunt simulator. Else, display usage syntax and exit
+# If arguments are valid, create an instance of a Block_Verifier and begin checking
 if valid_args
-  @verify_block = Block_Verifier.new
-  file = File.open(ARGV[0])
-  blocks = file.read.split("\n")
-  @verify_block.check_block(blocks)
+  @verify_blockchain = Block_Verifier.new
+  block = []
+
+  file = File.open(ARGV[0], "r")
+  block = file.read.split("\n")
+
+  @verify_blockchain.check_input(block)
 else
   arg_error
 end
