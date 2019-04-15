@@ -28,7 +28,7 @@ class BlockVerifier
     @balance_error = false
   end
 
-  # Class that creates a hash map of the addresses and their respective balances
+  # Class that creates a hash map of addresses and their respective balances
   class Addresses
     attr_reader :addresses
     @addresses = {}
