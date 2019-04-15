@@ -4,4 +4,4 @@ require 'simplecov'
 SimpleCov.start
 
 require_relative 'arg_check_test.rb'
-# require_relative 'block_verifier_test.rb'
+require_relative 'blockverifier_test.rb'

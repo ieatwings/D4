@@ -7,6 +7,7 @@ class BlockVerifier
   attr_accessor :actual_prev_hash
   attr_accessor :addresses
   attr_accessor :hash_array
+  attr_accessor :block_attributes
   attr_accessor :prev_hash_error
   attr_accessor :prev_timestamp_error
   attr_accessor :block_num_error
@@ -20,6 +21,7 @@ class BlockVerifier
     @actual_prev_hash = 0
     @addresses = Addresses.new
     @hash_array = []
+    @block_attributes = []
     @prev_hash_error = false
     @prev_timestamp_error = false
     @block_num_error = false
@@ -97,8 +99,10 @@ class BlockVerifier
   end
 
   def check_block(block)
-    block_attributes = block.split('|')
-    curr_block = Block.new(block_attributes[0], block_attributes[1], block_attributes[2], block_attributes[3].split('.'), block_attributes[4].strip)
+    @block_attributes = block.split('|')
+    # rubocop:disable LineLength
+    curr_block = Block.new(@block_attributes[0], @block_attributes[1], @block_attributes[2], @block_attributes[3].split('.'), @block_attributes[4].strip)
+    # rubocop:enable LineLength
 
     check_block_num(curr_block)
     check_block_transactions(curr_block)
@@ -119,9 +123,13 @@ class BlockVerifier
     # 100.1000 (100 seconds + 1000 nanoseconds)
     # 100.1000 > 100.8
     # curr_timestamp > prev_timestamp
+    # rubocop:disable LineLength
     if @prev_timestamp != 0 && curr_block.timestamp[0].to_i <= @prev_timestamp[0].to_i && curr_block.timestamp[1].to_i < @prev_timestamp[1].to_i
+      # rubocop:enable LineLength
       @prev_timestamp_error = true
+      # rubocop:disable LineLength
       puts "Line #{@curr_count}: Previous timestamp #{@prev_timestamp[0]}.#{@prev_timestamp[1]} >= new timestamp #{curr_block.timestamp[0]}.#{curr_block.timestamp[1]}"
+      # rubocop:enable LineLength
       puts 'BLOCKCHAIN INVALID'
       exit 1
     end
@@ -174,7 +182,9 @@ class BlockVerifier
   # NOTE: hash will include FIRST FOUR elements of the string INCLUDING the pipe delimiters
   # function to check hash of first 4 elements
   def check_block_hash(curr_block)
+    # rubocop:disable LineLength
     block_hash_string = curr_block.block_number + '|' + curr_block.prev_block_hash + '|' + curr_block.raw_transactions + '|' + curr_block.timestamp[0] + '.' + curr_block.timestamp[1]
+    # rubocop:enable LineLength
     block_hash_string.unpack('U*')
 
     # splits the string into each character
@@ -196,7 +206,9 @@ class BlockVerifier
     return unless resulting_hash != curr_block.block_hash
 
     @block_hash_error = true
+    # rubocop:disable LineLength
     puts "Line #{@curr_count}: String '#{block_hash_string}' hash set to #{curr_block.block_hash}, should be #{resulting_hash}"
+    # rubocop:enable LineLength
     puts 'BLOCKCHAIN INVALID'
     exit 1
   end
