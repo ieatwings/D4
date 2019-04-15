@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # class to verify blocks
 class BlockVerifier
   attr_accessor :curr_count
@@ -28,6 +30,7 @@ class BlockVerifier
 
   # Class that creates a hash map of the addresses and their respective balances
   class Addresses
+    attr_reader :addresses
     @addresses = {}
 
     def initialize
@@ -37,9 +40,7 @@ class BlockVerifier
     # function to handle the Billcoin transactions
     def handle_billcoins(name, coins)
       # if coins are from the system, ignore it
-      if name == 'SYSTEM'
-        return
-      end
+      return unless name != 'SYSTEM'
 
       # if the address exists in the hash
       if @addresses.key?(name)
@@ -51,21 +52,19 @@ class BlockVerifier
 
     def check_balance(curr_count)
       @addresses.each do |name, coins|
-        if coins.negative?
-          @balance_error = true
-          puts "Line #{curr_count}: Invalid block, address #{name} has #{coins} billcoins!"
-          puts 'BLOCKCHAIN INVALID'
-          exit 1
-        end
+        next unless coins.negative?
+
+        @balance_error = true
+        puts "Line #{curr_count}: Invalid block, address #{name} has #{coins} billcoins!"
+        puts 'BLOCKCHAIN INVALID'
+        exit 1
       end
     end
 
     def print
       @addresses = @addresses.sort_by { |name, _coins| name }
       @addresses.each do |name, coins|
-        if coins != 0
-          puts "#{name}: #{coins} billcoins"
-        end
+        puts "#{name}: #{coins} billcoins" unless coins.zero?
       end
     end
   end
@@ -135,12 +134,12 @@ class BlockVerifier
   # function to check the numbering of blocks
   def check_block_num(curr_block)
     # make sure number of blocks is in order starting at 0
-    if curr_block.block_number.to_i != @curr_count
-      @block_num_error = true
-      puts "Line #{curr_count}: Invalid block number #{curr_block.block_number}, should be #{curr_count} "
-      puts 'BLOCKCHAIN INVALID'
-      exit 1
-    end
+    return unless curr_block.block_number.to_i != @curr_count
+
+    @block_num_error = true
+    puts "Line #{curr_count}: Invalid block number #{curr_block.block_number}, should be #{curr_count} "
+    puts 'BLOCKCHAIN INVALID'
+    exit 1
   end
 
   # function to check sequence of transaction
@@ -194,11 +193,11 @@ class BlockVerifier
     res = res % 65_536
     # resulting hash string in base-16
     resulting_hash = res.to_s(16)
-    if resulting_hash != curr_block.block_hash
-      @block_hash_error = true
-      puts "Line #{@curr_count}: String '#{block_hash_string}' hash set to #{curr_block.block_hash}, should be #{resulting_hash}"
-      puts 'BLOCKCHAIN INVALID'
-      exit 1
-    end
+    return unless resulting_hash != curr_block.block_hash
+
+    @block_hash_error = true
+    puts "Line #{@curr_count}: String '#{block_hash_string}' hash set to #{curr_block.block_hash}, should be #{resulting_hash}"
+    puts 'BLOCKCHAIN INVALID'
+    exit 1
   end
 end
